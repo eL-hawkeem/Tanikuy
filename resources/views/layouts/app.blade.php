@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'Dashboard') — Tanikuy Inventory & EOQ System</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS Assets from Spark Admin -->
+    <link rel="stylesheet" href="{{ asset('assets/libs/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/libs/bootstrap-icons/bootstrap-icons.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/libs/apexcharts/apexcharts.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}">
+
+    <style>
+        /* Custom polish for Tanikuy branding and contrast */
+        .brand-lime-badge {
+            background-color: var(--brand-lime);
+            color: var(--brand-forest-dark);
+            font-weight: 700;
+            border-radius: 50rem;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.75rem;
+        }
+        .table-card-custom {
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .table-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .card-custom {
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .btn-brand-lime {
+            background-color: var(--brand-lime);
+            color: var(--brand-forest-dark);
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.6rem 1.25rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-brand-lime:hover {
+            background-color: var(--brand-lime-hover);
+            color: var(--brand-forest-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--brand-lime-translucent);
+        }
+        .btn-brand-forest {
+            background-color: var(--brand-forest-dark);
+            color: #ffffff;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.6rem 1.25rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-brand-forest:hover {
+            background-color: var(--brand-forest-medium);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        .status-badge-critical {
+            background: var(--sys-red-bg);
+            color: var(--sys-red);
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50rem;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .status-badge-warning {
+            background: var(--sys-orange-bg);
+            color: var(--sys-orange);
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50rem;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .status-badge-success {
+            background: var(--sys-green-bg);
+            color: var(--sys-green);
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50rem;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+    </style>
+    @stack('styles')
+</head>
+<body>
+    @php
+        $lowStockCount = \App\Models\Product::where('status', 'active')
+            ->whereColumn('stok_saat_ini', '<=', 'stok_minimum')
+            ->count();
+    @endphp
+
+    <!-- Sidebar Component (Forest Dark #051C12) -->
+    <aside class="sidebar-wrapper">
+        <a href="{{ route('dashboard') }}" class="sidebar-brand">
+            <i class="bi bi-asterisk"></i>
+            <span>Tanikuy</span>
+        </a>
+
+        <div class="sidebar-menu-section">
+            <div class="sidebar-menu-title">UTAMA</div>
+            <ul class="sidebar-menu-list">
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('dashboard') }}" class="sidebar-menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('transactions.create') }}" class="sidebar-menu-link {{ request()->routeIs('transactions.create') ? 'active' : '' }}">
+                        <i class="bi bi-cart-plus-fill"></i>
+                        <span>Kasir / Penjualan</span>
+                        <span class="sidebar-menu-badge">POS</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('transactions.index') }}" class="sidebar-menu-link {{ request()->routeIs('transactions.index') || request()->routeIs('transactions.show') ? 'active' : '' }}">
+                        <i class="bi bi-receipt"></i>
+                        <span>Riwayat Penjualan</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-menu-section">
+            <div class="sidebar-menu-title">INVENTORY & EOQ</div>
+            <ul class="sidebar-menu-list">
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('products.index') }}" class="sidebar-menu-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam-fill"></i>
+                        <span>Kelola Barang</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('categories.index') }}" class="sidebar-menu-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">
+                        <i class="bi bi-tags-fill"></i>
+                        <span>Kategori Produk</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('suppliers.index') }}" class="sidebar-menu-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
+                        <i class="bi bi-truck"></i>
+                        <span>Kelola Supplier</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('stock.index') }}" class="sidebar-menu-link {{ request()->routeIs('stock.*') ? 'active' : '' }}">
+                        <i class="bi bi-arrow-left-right"></i>
+                        <span>Pemantauan Stok</span>
+                        @if($lowStockCount > 0)
+                            <span class="sidebar-menu-badge bg-danger text-white">{{ $lowStockCount }}</span>
+                        @endif
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('eoq.index') }}" class="sidebar-menu-link {{ request()->routeIs('eoq.*') ? 'active' : '' }}">
+                        <i class="bi bi-cpu-fill"></i>
+                        <span>Algoritma EOQ</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-menu-section">
+            <div class="sidebar-menu-title">LAPORAN</div>
+            <ul class="sidebar-menu-list">
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('reports.sales') }}" class="sidebar-menu-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                        <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                        <span>Laporan Bisnis</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Bottom Profile Dock -->
+        <div class="sidebar-profile">
+            <img src="{{ asset('assets/images/user-4.jpg') }}" alt="Admin" class="sidebar-profile-img" onerror="this.src='https://ui-avatars.com/api/?name=Admin+Tanikuy&background=072F1F&color=B4F105';">
+            <div class="sidebar-profile-info">
+                <div class="sidebar-profile-name">{{ auth()->user()->name ?? 'Admin Tanikuy' }}</div>
+                <div class="sidebar-profile-email">{{ auth()->user()->email ?? 'admin@tanikuy.com' }}</div>
+            </div>
+            <form action="{{ route('logout') }}" method="POST" class="d-inline m-0 p-0">
+                @csrf
+                <button type="submit" class="btn btn-link text-white-50 p-1 text-decoration-none" title="Keluar / Logout">
+                    <i class="bi bi-box-arrow-right fs-5"></i>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content Canvas -->
+    <main class="main-wrapper">
+        <!-- Top Navbar Component -->
+        <header class="navbar-custom">
+            <div class="navbar-left">
+                <a href="{{ route('transactions.create') }}" class="btn-quick-action">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>Transaksi Baru</span>
+                </a>
+            </div>
+
+            <div class="navbar-center d-flex align-items-center justify-content-center">
+                <div class="text-muted small fw-semibold">
+                    <i class="bi bi-calendar3 me-1 text-success"></i>
+                    {{ now()->translatedFormat('l, d F Y') }} &bull; UMKM Pertanian Modern
+                </div>
+            </div>
+
+            <div class="navbar-right d-flex align-items-center justify-content-end gap-3">
+                <a href="{{ route('stock.index') }}" class="position-relative text-dark text-decoration-none p-2 rounded-circle hover-bg-light" title="Stok Kritis">
+                    <i class="bi bi-bell-fill fs-5 text-secondary"></i>
+                    @if($lowStockCount > 0)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                            {{ $lowStockCount }}
+                        </span>
+                    @endif
+                </a>
+
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light rounded-pill px-3 py-1 dropdown-toggle d-flex align-items-center gap-2 border" type="button" data-bs-toggle="dropdown">
+                        <span class="fw-semibold text-dark">{{ auth()->user()->name ?? 'Admin' }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: var(--radius-lg);">
+                        <li>
+                            <div class="px-3 py-2 border-bottom">
+                                <div class="fw-bold">{{ auth()->user()->name ?? 'Admin Tanikuy' }}</div>
+                                <div class="small text-muted">{{ auth()->user()->email ?? 'admin@tanikuy.com' }}</div>
+                            </div>
+                        </li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
+                                    <i class="bi bi-box-arrow-right"></i> Keluar
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Flash Alert Messages -->
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2" role="alert" style="border-radius: var(--radius-lg); background-color: var(--sys-green-bg); color: var(--sys-green);">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <div>{{ session('success') }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2" role="alert" style="border-radius: var(--radius-lg); background-color: var(--sys-red-bg); color: var(--sys-red);">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                <div>{{ session('error') }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2" role="alert" style="border-radius: var(--radius-lg); background-color: var(--sys-orange-bg); color: var(--sys-orange);">
+                <i class="bi bi-exclamation-circle-fill fs-5"></i>
+                <div>{{ session('warning') }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        <!-- Main Dynamic View Body -->
+        @yield('content')
+
+        <!-- Footer Component -->
+        <footer class="mt-auto pt-4 pb-2 border-top text-center text-muted small">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    &copy; {{ date('Y') }} <strong>Tanikuy</strong> &bull; Sistem Inventory & Pencatatan Penjualan UMKM Pertanian (Algoritma EOQ).
+                </div>
+                <div>
+                    Desain Berbasis <span class="fw-semibold text-dark">Spark Admin v1.0</span> (Forest & Neon Theme)
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Core Scripts -->
+    <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('assets/libs/apexcharts/apexcharts.min.js') }}"></script>
+    @stack('scripts')
+</body>
+</html>
