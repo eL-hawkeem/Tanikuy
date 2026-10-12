@@ -67,18 +67,31 @@
 
 <div class="table-card-custom">
     <div class="table-card-header">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
             <h5 class="fw-bold text-dark m-0">Status Inventaris Barang</h5>
-            @if($statusStok)
-                <a href="{{ route('stock.index') }}" class="badge bg-secondary text-white text-decoration-none">
-                    Reset Filter [x]
+            @if($statusStok || !empty($search) || !empty($kategoriId))
+                <a href="{{ route('stock.index') }}" class="badge bg-secondary text-white text-decoration-none" title="Reset Semua Filter">
+                    <i class="bi bi-x-circle me-1"></i>Reset Filter
                 </a>
+            @endif
+            @if(!empty($search))
+                <span class="badge bg-light text-dark border">
+                    <i class="bi bi-search me-1 text-muted"></i>{{ $search }}
+                </span>
             @endif
         </div>
         <div>
             <form action="{{ route('stock.index') }}" method="GET" class="d-flex gap-2">
-                <input type="hidden" name="status_stok" value="{{ $statusStok }}">
-                <select name="kategori_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                @if($statusStok)
+                    <input type="hidden" name="status_stok" value="{{ $statusStok }}">
+                @endif
+                <div class="input-group input-group-sm" style="min-width: 200px;">
+                    <input type="text" name="search" class="form-control" placeholder="Cari nama/kode barang..." value="{{ $search ?? '' }}">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <select name="kategori_id" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 150px;">
                     <option value="">Semua Kategori</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ $kategoriId == $cat->id ? 'selected' : '' }}>

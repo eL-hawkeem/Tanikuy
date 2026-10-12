@@ -19,9 +19,16 @@ class StockController extends Controller
     {
         $kategoriId = $request->input('kategori_id');
         $statusStok = $request->input('status_stok');
+        $search = $request->input('search');
 
         $query = Product::with(['kategori', 'supplier'])
             ->where('status', 'active')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('nama_barang', 'like', "%{$search}%")
+                        ->orWhere('kode_barang', 'like', "%{$search}%");
+                });
+            })
             ->when($kategoriId, fn($q) => $q->where('kategori_id', $kategoriId))
             ->when($statusStok === 'critical', fn($q) => $q->whereColumn('stok_saat_ini', '<=', 'stok_minimum'))
             ->when($statusStok === 'warning', fn($q) => $q->whereRaw('stok_saat_ini > stok_minimum AND stok_saat_ini <= (stok_minimum * 1.5)'))
@@ -34,7 +41,7 @@ class StockController extends Controller
         $warningCount = Product::where('status', 'active')->whereRaw('stok_saat_ini > stok_minimum AND stok_saat_ini <= (stok_minimum * 1.5)')->count();
         $normalCount = Product::where('status', 'active')->whereRaw('stok_saat_ini > (stok_minimum * 1.5)')->count();
 
-        return view('stock.index', compact('products', 'categories', 'kategoriId', 'statusStok', 'criticalCount', 'warningCount', 'normalCount'));
+        return view('stock.index', compact('products', 'categories', 'kategoriId', 'statusStok', 'search', 'criticalCount', 'warningCount', 'normalCount'));
     }
 
     public function movements(Request $request)

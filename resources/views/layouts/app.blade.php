@@ -147,14 +147,60 @@
             align-items: center;
             gap: 0.35rem;
         }
+
+        /* Notification Dropdown Styling */
+        .hover-bg-light {
+            transition: background-color 0.2s ease;
+        }
+        .hover-bg-light:hover {
+            background-color: rgba(0, 0, 0, 0.06);
+        }
+        .notification-dropdown-menu {
+            border-radius: var(--radius-lg);
+            box-shadow: 0 12px 36px rgba(5, 28, 18, 0.2);
+            animation: fadeInDropdown 0.2s ease-out;
+        }
+        @keyframes fadeInDropdown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .notif-item {
+            text-decoration: none;
+            color: inherit;
+        }
+        .notif-item:hover {
+            background-color: #f8fafc;
+        }
+        .notif-filter-btn.active {
+            background-color: var(--brand-forest-dark);
+            color: #ffffff !important;
+        }
+        .notification-list-body::-webkit-scrollbar {
+            width: 5px;
+        }
+        .notification-list-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
     </style>
     @stack('styles')
 </head>
 <body>
     @php
-        $lowStockCount = \App\Models\Product::where('status', 'active')
-            ->whereColumn('stok_saat_ini', '<=', 'stok_minimum')
-            ->count();
+        if (!isset($notifications)) {
+            $notificationService = app(\App\Services\NotificationService::class);
+            $notificationsData = $notificationService->getNotifications(auth()->user());
+            $notifications = $notificationsData['items'];
+            $notificationCount = $notificationsData['total_count'];
+            $urgentNotificationCount = $notificationsData['urgent_count'];
+            $lowStockCount = $notificationsData['low_stock_count'];
+        }
     @endphp
 
     <!-- Sidebar Component (Forest Dark #051C12) -->
@@ -177,7 +223,6 @@
                     <a href="{{ route('transactions.create') }}" class="sidebar-menu-link {{ request()->routeIs('transactions.create') ? 'active' : '' }}">
                         <i class="bi bi-cart-plus-fill"></i>
                         <span>Kasir / Penjualan</span>
-                        <span class="sidebar-menu-badge">POS</span>
                     </a>
                 </li>
                 <li class="sidebar-menu-item">
@@ -301,14 +346,110 @@
             </div>
 
             <div class="navbar-right d-flex align-items-center justify-content-end gap-3">
-                <a href="{{ route('stock.index') }}" class="position-relative text-dark text-decoration-none p-2 rounded-circle hover-bg-light" title="Stok Kritis">
-                    <i class="bi bi-bell-fill fs-5 text-secondary"></i>
-                    @if($lowStockCount > 0)
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
-                            {{ $lowStockCount }}
-                        </span>
-                    @endif
-                </a>
+                <!-- Notification Bell Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-link position-relative text-dark text-decoration-none p-2 rounded-circle hover-bg-light border-0 shadow-none d-flex align-items-center justify-content-center" 
+                            type="button" 
+                            id="notificationBellBtn" 
+                            data-bs-toggle="dropdown" 
+                            data-bs-auto-close="outside"
+                            aria-expanded="false" 
+                            title="Pemberitahuan & Notifikasi">
+                        <i class="bi bi-bell-fill fs-5 text-secondary"></i>
+                        @if(($urgentNotificationCount ?? 0) > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                                {{ $urgentNotificationCount }}
+                            </span>
+                        @elseif(($notificationCount ?? 0) > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle">
+                                <span class="visually-hidden">Notifikasi Baru</span>
+                            </span>
+                        @endif
+                    </button>
+                    
+                    <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-0 notification-dropdown-menu" 
+                         style="width: 380px; max-width: 92vw; border-radius: var(--radius-lg); overflow: hidden; z-index: 1060;">
+                        <!-- Dropdown Header -->
+                        <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="background-color: var(--brand-forest-dark); color: #ffffff;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-bell-fill" style="color: var(--brand-lime);"></i>
+                                <span class="fw-bold fs-6">Notifikasi Sistem</span>
+                            </div>
+                            <span class="badge rounded-pill" style="background-color: rgba(180, 241, 5, 0.2); color: var(--brand-lime); font-size: 0.72rem; border: 1px solid rgba(180, 241, 5, 0.4);">
+                                {{ count($notifications ?? []) }} Terkini
+                            </span>
+                        </div>
+
+                        <!-- Filter Tabs -->
+                        <div class="px-3 pt-2 pb-2 bg-light border-bottom d-flex gap-1 overflow-auto notif-filter-bar">
+                            <button type="button" class="btn btn-sm py-1 px-2 rounded-pill notif-filter-btn active fw-semibold" data-filter="all" style="font-size: 0.75rem;">
+                                Semua ({{ count($notifications ?? []) }})
+                            </button>
+                            @php
+                                $critCount = collect($notifications ?? [])->where('type', 'critical')->count();
+                                $txCount = collect($notifications ?? [])->where('type', 'transaction')->count();
+                            @endphp
+                            @if($critCount > 0)
+                                <button type="button" class="btn btn-sm py-1 px-2 rounded-pill notif-filter-btn text-muted fw-semibold" data-filter="critical" style="font-size: 0.75rem;">
+                                    Stok Kritis ({{ $critCount }})
+                                </button>
+                            @endif
+                            @if($txCount > 0)
+                                <button type="button" class="btn btn-sm py-1 px-2 rounded-pill notif-filter-btn text-muted fw-semibold" data-filter="transaction" style="font-size: 0.75rem;">
+                                    Penjualan ({{ $txCount }})
+                                </button>
+                            @endif
+                        </div>
+
+                        <!-- Notification Items Scrollable Body -->
+                        <div class="notification-list-body" style="max-height: 380px; overflow-y: auto;">
+                            @forelse($notifications ?? [] as $notif)
+                                <a href="{{ $notif['url'] }}" 
+                                   class="dropdown-item d-flex align-items-start gap-3 p-3 border-bottom text-wrap notif-item notif-type-{{ $notif['type'] }}" 
+                                   style="transition: background-color 0.15s ease; white-space: normal;">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 {{ $notif['bg_color'] }}" style="width: 38px; height: 38px; margin-top: 2px;">
+                                        <i class="{{ $notif['icon'] }} {{ $notif['icon_color'] }} fs-5"></i>
+                                    </div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                                            <span class="badge {{ $notif['badge_class'] }}" style="font-size: 0.65rem; font-weight: 600;">
+                                                {{ $notif['badge'] }}
+                                            </span>
+                                            <span class="text-muted small" style="font-size: 0.7rem;">
+                                                <i class="bi bi-clock me-1"></i>{{ $notif['time'] }}
+                                            </span>
+                                        </div>
+                                        <div class="fw-bold text-dark small mb-1" style="font-size: 0.83rem; line-height: 1.3;">
+                                            {{ $notif['title'] }}
+                                        </div>
+                                        <div class="text-secondary small" style="font-size: 0.75rem; line-height: 1.35;">
+                                            {{ $notif['message'] }}
+                                        </div>
+                                    </div>
+                                    <i class="bi bi-chevron-right text-muted align-self-center fs-6 flex-shrink-0 ms-1 opacity-50"></i>
+                                </a>
+                            @empty
+                                <div class="p-4 text-center text-muted">
+                                    <div class="rounded-circle bg-light d-inline-flex p-3 mb-2 text-success">
+                                        <i class="bi bi-check2-circle fs-2"></i>
+                                    </div>
+                                    <div class="fw-semibold small">Semua Berjalan Normal</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Tidak ada pemberitahuan atau stok kritis saat ini.</div>
+                                </div>
+                            @endforelse
+                        </div>
+
+                        <!-- Dropdown Footer -->
+                        <div class="p-2 bg-light border-top d-flex justify-content-between align-items-center gap-2">
+                            <a href="{{ route('stock.index') }}" class="btn btn-sm btn-white border flex-fill text-dark fw-semibold" style="font-size: 0.75rem; background: #ffffff;">
+                                <i class="bi bi-box-seam me-1 text-danger"></i> Pantau Stok
+                            </a>
+                            <a href="{{ route('transactions.index') }}" class="btn btn-sm btn-white border flex-fill text-dark fw-semibold" style="font-size: 0.75rem; background: #ffffff;">
+                                <i class="bi bi-receipt me-1 text-success"></i> Riwayat POS
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="dropdown">
                     <button class="btn btn-sm btn-light rounded-pill px-3 py-1 dropdown-toggle d-flex align-items-center gap-2 border" type="button" data-bs-toggle="dropdown">
@@ -395,6 +536,35 @@
     <!-- Core Scripts -->
     <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/libs/apexcharts/apexcharts.min.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Filter interaktif kategori notifikasi
+            const filterBtns = document.querySelectorAll('.notif-filter-btn');
+            const notifItems = document.querySelectorAll('.notif-item');
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation(); // Mencegah dropdown tertutup saat mengganti tab filter
+                    
+                    filterBtns.forEach(b => {
+                        b.classList.remove('active');
+                        b.classList.add('text-muted');
+                    });
+                    this.classList.add('active');
+                    this.classList.remove('text-muted');
+
+                    const filter = this.getAttribute('data-filter');
+                    notifItems.forEach(item => {
+                        if (filter === 'all' || item.classList.contains('notif-type-' + filter)) {
+                            item.style.setProperty('display', 'flex', 'important');
+                        } else {
+                            item.style.setProperty('display', 'none', 'important');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>
