@@ -5,12 +5,12 @@ namespace Tests\Unit;
 use App\Models\Product;
 use App\Services\EoqService;
 use Database\Seeders\DatabaseSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class EoqServiceTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     public function test_eoq_formula_calculation_is_mathematically_accurate(): void
     {

@@ -8,12 +8,14 @@
         <h1 class="h3 fw-bold text-dark m-0">Katalog Barang Pertanian</h1>
         <p class="text-muted small m-0 mt-1">Daftar inventaris pupuk, benih, beras, pestisida, dan peralatan tani</p>
     </div>
+    @if(auth()->user()->isAdmin())
     <div>
         <a href="{{ route('products.create') }}" class="btn btn-brand-lime">
             <i class="bi bi-plus-lg"></i>
             <span>Tambah Barang Baru</span>
         </a>
     </div>
+    @endif
 </div>
 
 <div class="table-card-custom">
@@ -77,8 +79,19 @@
                 @forelse($products as $prod)
                     <tr>
                         <td class="ps-4">
-                            <div class="fw-bold text-dark">{{ $prod->nama_barang }}</div>
-                            <div class="text-muted small"><code>{{ $prod->kode_barang }}</code> &bull; Satuan: {{ $prod->satuan }}</div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-3 border bg-light d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0" style="width: 44px; height: 44px;">
+                                    @if($prod->gambar_url)
+                                        <img src="{{ $prod->gambar_url }}" alt="{{ $prod->nama_barang }}" class="w-100 h-100" style="object-fit: cover;">
+                                    @else
+                                        <i class="bi bi-image text-muted opacity-50 fs-5"></i>
+                                    @endif
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ $prod->nama_barang }}</div>
+                                    <div class="text-muted small"><code>{{ $prod->kode_barang }}</code> &bull; Satuan: {{ $prod->satuan }}</div>
+                                </div>
+                            </div>
                         </td>
                         <td>
                             <span class="badge rounded-pill" style="background-color: {{ $prod->kategori->warna ?? '#10B981' }}20; color: {{ $prod->kategori->warna ?? '#10B981' }}; font-weight: 600;">
@@ -116,33 +129,37 @@
                             @endif
                         </td>
                         <td class="text-end pe-4">
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-light border" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: var(--radius-md);">
-                                    <li>
-                                        <a href="{{ route('products.edit', $prod) }}" class="dropdown-item py-2">
-                                            <i class="bi bi-pencil me-2 text-warning"></i> Edit Produk
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="{{ route('eoq.index') }}" class="dropdown-item py-2">
-                                            <i class="bi bi-cpu me-2 text-success"></i> Hitung EOQ
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form action="{{ route('products.destroy', $prod) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="dropdown-item py-2 text-danger">
-                                                <i class="bi bi-trash me-2"></i> Hapus
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
+                            @if(auth()->user()->isAdmin())
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: var(--radius-md);">
+                                        <li>
+                                            <a href="{{ route('products.edit', $prod) }}" class="dropdown-item py-2">
+                                                <i class="bi bi-pencil me-2 text-warning"></i> Edit Produk
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{{ route('eoq.index') }}" class="dropdown-item py-2">
+                                                <i class="bi bi-cpu me-2 text-success"></i> Hitung EOQ
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form action="{{ route('products.destroy', $prod) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="dropdown-item py-2 text-danger">
+                                                    <i class="bi bi-trash me-2"></i> Hapus
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            @else
+                                <span class="badge bg-light text-muted border">Lihat Saja</span>
+                            @endif
                         </td>
                     </tr>
                 @empty

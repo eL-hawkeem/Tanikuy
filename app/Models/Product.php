@@ -72,6 +72,19 @@ class Product extends Model
         return $query->whereColumn('stok_saat_ini', '<=', 'stok_minimum');
     }
 
+    public function getGambarUrlAttribute(): ?string
+    {
+        if (!$this->gambar) {
+            return null;
+        }
+
+        if (str_starts_with($this->gambar, 'http://') || str_starts_with($this->gambar, 'https://')) {
+            return $this->gambar;
+        }
+
+        return asset('storage/' . $this->gambar);
+    }
+
     public function getStockStatusAttribute(): string
     {
         if ($this->stok_saat_ini <= $this->stok_minimum) {

@@ -89,6 +89,14 @@
             </div>
 
             <div class="mb-3">
+                <div class="text-muted small">Kasir Bertugas:</div>
+                <div class="fw-bold text-dark fs-6 d-flex align-items-center gap-2">
+                    <i class="bi bi-person-badge text-success"></i>
+                    <span>{{ $transaction->user->name ?? 'Kasir Tanikuy' }}</span>
+                </div>
+            </div>
+
+            <div class="mb-3">
                 <div class="text-muted small">Metode Pembayaran:</div>
                 <span class="badge bg-light text-dark border px-3 py-2 text-uppercase fs-6">
                     {{ $transaction->metode_pembayaran }}
@@ -111,16 +119,16 @@
                 </div>
             @endif
 
-            <div class="mt-4 pt-3 border-top">
-                @if($transaction->status === 'completed')
+            @if(auth()->user()->isAdmin() && $transaction->status === 'completed')
+                <div class="mt-4 pt-3 border-top">
                     <form action="{{ route('transactions.cancel', $transaction) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan transaksi ini? Seluruh stok barang akan dikembalikan ke inventaris.');">
                         @csrf
                         <button type="submit" class="btn btn-outline-danger w-100">
                             <i class="bi bi-x-circle me-1"></i> Batalkan Transaksi
                         </button>
                     </form>
-                @endif
-            </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>

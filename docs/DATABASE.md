@@ -15,6 +15,7 @@ erDiagram
         bigint id PK
         string name
         string email UK
+        enum role
         string password
         timestamp email_verified_at
         timestamp created_at
@@ -69,6 +70,7 @@ erDiagram
 
     TRANSACTIONS {
         bigint id PK
+        bigint user_id FK
         string nomor_transaksi UK
         datetime tanggal
         string nama_pelanggan
@@ -123,6 +125,7 @@ erDiagram
         timestamp updated_at
     }
 
+    USERS ||--o{ TRANSACTIONS : "processes"
     CATEGORIES ||--o{ PRODUCTS : "has many"
     SUPPLIERS ||--o{ PRODUCTS : "supplies"
     PRODUCTS ||--o{ TRANSACTION_DETAILS : "sold in"

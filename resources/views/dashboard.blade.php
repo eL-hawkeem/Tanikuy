@@ -12,10 +12,12 @@
         <p class="text-muted small m-0 mt-1">Sistem Cerdas Manajemen Inventory Pertanian & Algoritma EOQ</p>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <a href="{{ route('eoq.index') }}" class="btn btn-outline-success fw-semibold d-inline-flex align-items-center gap-2">
-            <i class="bi bi-cpu"></i>
-            <span>Analisis EOQ</span>
-        </a>
+        @if(auth()->user()->isAdmin())
+            <a href="{{ route('eoq.index') }}" class="btn btn-outline-success fw-semibold d-inline-flex align-items-center gap-2">
+                <i class="bi bi-cpu"></i>
+                <span>Analisis EOQ</span>
+            </a>
+        @endif
         <a href="{{ route('transactions.create') }}" class="btn btn-brand-lime">
             <i class="bi bi-cart-plus-fill"></i>
             <span>Transaksi Baru</span>
@@ -42,9 +44,15 @@
                     Semua stok produk dalam batas aman.
                 @endif
             </div>
-            <a href="{{ route('eoq.index') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 mt-auto align-self-start fw-semibold">
-                Lihat Kebutuhan <i class="bi bi-arrow-right ms-1"></i>
-            </a>
+            @if(auth()->user()->isAdmin())
+                <a href="{{ route('eoq.index') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 mt-auto align-self-start fw-semibold">
+                    Lihat Kebutuhan <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            @else
+                <a href="{{ route('stock.index') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 mt-auto align-self-start fw-semibold">
+                    Lihat Stok Barang <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            @endif
         </div>
     </div>
 

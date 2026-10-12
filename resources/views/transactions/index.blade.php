@@ -78,6 +78,7 @@
                         </td>
                         <td>
                             <div class="fw-semibold text-dark">{{ $tx->nama_pelanggan ?? 'Umum' }}</div>
+                            <div class="text-muted small"><i class="bi bi-person-badge me-1"></i>{{ $tx->user->name ?? 'Kasir Tanikuy' }}</div>
                         </td>
                         <td>
                             <span class="badge bg-light text-dark border text-uppercase">
@@ -106,7 +107,7 @@
                             <a href="{{ route('transactions.invoice', $tx) }}" target="_blank" class="btn btn-sm btn-outline-success me-1" title="Cetak Faktur">
                                 <i class="bi bi-printer"></i>
                             </a>
-                            @if($tx->status === 'completed')
+                            @if(auth()->user()->isAdmin() && $tx->status === 'completed')
                                 <form action="{{ route('transactions.cancel', $tx) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan transaksi ini? Stok barang akan dikembalikan otomatis ke inventaris.');">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-light border text-danger" title="Batalkan & Kembalikan Stok">

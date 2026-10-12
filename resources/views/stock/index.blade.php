@@ -8,6 +8,7 @@
         <h1 class="h3 fw-bold text-dark m-0">Pemantauan Stok Otomatis</h1>
         <p class="text-muted small m-0 mt-1">Status ketersediaan stok produk dan tindakan pemesanan</p>
     </div>
+    @if(auth()->user()->isAdmin())
     <div class="d-flex gap-2">
         <a href="{{ route('stock.movements') }}" class="btn btn-outline-secondary">
             <i class="bi bi-clock-history"></i> Riwayat Pergerakan Stok
@@ -16,6 +17,7 @@
             <i class="bi bi-box-arrow-in-down"></i> Terima Barang Masuk
         </button>
     </div>
+    @endif
 </div>
 
 <!-- Status Filter Cards -->
@@ -136,14 +138,18 @@
                             @endif
                         </td>
                         <td>
-                            <div class="d-flex gap-1">
-                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#restockItemModal{{ $prod->id }}" title="Terima Barang Masuk">
-                                    <i class="bi bi-plus-lg"></i> Restock
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#adjustModal{{ $prod->id }}" title="Stock Opname / Penyesuaian">
-                                    <i class="bi bi-sliders"></i> Opname
-                                </button>
-                            </div>
+                            @if(auth()->user()->isAdmin())
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#restockItemModal{{ $prod->id }}" title="Terima Barang Masuk">
+                                        <i class="bi bi-plus-lg"></i> Restock
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#adjustModal{{ $prod->id }}" title="Stock Opname / Penyesuaian">
+                                        <i class="bi bi-sliders"></i> Opname
+                                    </button>
+                                </div>
+                            @else
+                                <span class="badge bg-light text-muted border">Tersedia: {{ $prod->stok_saat_ini }} {{ $prod->satuan }}</span>
+                            @endif
                         </td>
                     </tr>
 

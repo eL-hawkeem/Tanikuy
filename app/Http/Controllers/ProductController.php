@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
@@ -61,10 +62,18 @@ class ProductController extends Controller
             'biaya_pemesanan' => ['required', 'numeric', 'min:0'],
             'biaya_penyimpanan' => ['required', 'numeric', 'min:0'],
             'deskripsi' => ['nullable', 'string'],
+            'gambar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ], [
             'harga_jual.gte' => 'Harga jual harus lebih besar atau sama dengan harga beli.',
             'kode_barang.unique' => 'Kode barang sudah digunakan.',
+            'gambar.image' => 'File harus berupa gambar.',
+            'gambar.mimes' => 'Format gambar harus JPG, JPEG, PNG, atau WEBP.',
+            'gambar.max' => 'Ukuran gambar maksimal 2MB.',
         ]);
+
+        if ($request->hasFile('gambar')) {
+            $validated['gambar'] = $request->file('gambar')->store('products', 'public');
+        }
 
         $validated['status'] = 'active';
 
@@ -108,7 +117,27 @@ class ProductController extends Controller
             'biaya_penyimpanan' => ['required', 'numeric', 'min:0'],
             'deskripsi' => ['nullable', 'string'],
             'status' => ['required', 'in:active,inactive'],
+            'gambar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'hapus_gambar' => ['nullable', 'boolean'],
+        ], [
+            'harga_jual.gte' => 'Harga jual harus lebih besar atau sama dengan harga beli.',
+            'kode_barang.unique' => 'Kode barang sudah digunakan.',
+            'gambar.image' => 'File harus berupa gambar.',
+            'gambar.mimes' => 'Format gambar harus JPG, JPEG, PNG, atau WEBP.',
+            'gambar.max' => 'Ukuran gambar maksimal 2MB.',
         ]);
+
+        if ($request->hasFile('gambar')) {
+            if ($product->gambar && Storage::disk('public')->exists($product->gambar)) {
+                Storage::disk('public')->delete($product->gambar);
+            }
+            $validated['gambar'] = $request->file('gambar')->store('products', 'public');
+        } elseif ($request->boolean('hapus_gambar')) {
+            if ($product->gambar && Storage::disk('public')->exists($product->gambar)) {
+                Storage::disk('public')->delete($product->gambar);
+            }
+            $validated['gambar'] = null;
+        }
 
         $product->update($validated);
 
@@ -119,6 +148,10 @@ class ProductController extends Controller
     {
         if ($product->transactionDetails()->exists()) {
             return back()->with('error', "Produk {$product->nama_barang} tidak dapat dihapus karena memiliki riwayat transaksi.");
+        }
+
+        if ($product->gambar && Storage::disk('public')->exists($product->gambar)) {
+            Storage::disk('public')->delete($product->gambar);
         }
 
         $product->delete();

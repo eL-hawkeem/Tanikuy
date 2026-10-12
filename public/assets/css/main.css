@@ -146,25 +146,50 @@ a:hover {
     width: var(--sidebar-width);
     background-color: var(--brand-forest-dark);
     height: 100vh;
+    max-height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1030;
     display: flex;
     flex-direction: column;
-    padding: 2rem 1.5rem;
+    padding: 1.75rem 1.25rem 1.25rem 1.25rem;
     border-right: 1px solid var(--border-dark-green);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.sidebar-wrapper::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+}
+
+.sidebar-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--brand-lime);
 }
 
 .sidebar-brand {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 0.75rem;
     font-size: 1.35rem;
     font-weight: 700;
     color: #FFFFFF;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.75rem;
     padding-left: 0.5rem;
     text-decoration: none;
     transition: color 0.25s ease;
@@ -300,6 +325,7 @@ a:hover {
 /* Bottom Profile Card in Sidebar */
 .sidebar-profile {
     margin-top: auto;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -308,6 +334,7 @@ a:hover {
     border-radius: var(--radius-xl);
     border: 1px solid var(--border-dark-green);
     color: #FFFFFF;
+    margin-bottom: 0.5rem;
 }
 
 .sidebar-profile-img {

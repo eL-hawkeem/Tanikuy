@@ -111,7 +111,10 @@
             </tr>
             <tr>
                 <td><strong>Metode Bayar:</strong> {{ strtoupper($transaction->metode_pembayaran) }}</td>
-                <td><strong>Status:</strong> {{ strtoupper($transaction->status) }}</td>
+                <td><strong>Kasir:</strong> {{ $transaction->user->name ?? 'Kasir Tanikuy' }}</td>
+            </tr>
+            <tr>
+                <td colspan="2"><strong>Status:</strong> {{ strtoupper($transaction->status) }}</td>
             </tr>
         </table>
 

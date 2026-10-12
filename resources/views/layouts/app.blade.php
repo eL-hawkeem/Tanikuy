@@ -19,6 +19,31 @@
 
     <style>
         /* Custom polish for Tanikuy branding and contrast */
+        .sidebar-wrapper {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+        }
+        .sidebar-wrapper::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+        }
+        .sidebar-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--brand-lime, #B4F105);
+        }
+        .sidebar-brand, .sidebar-profile, .sidebar-menu-section {
+            flex-shrink: 0;
+        }
+
         .brand-lime-badge {
             background-color: var(--brand-lime);
             color: var(--brand-forest-dark);
@@ -170,21 +195,23 @@
                 <li class="sidebar-menu-item">
                     <a href="{{ route('products.index') }}" class="sidebar-menu-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
                         <i class="bi bi-box-seam-fill"></i>
-                        <span>Kelola Barang</span>
+                        <span>{{ auth()->user()->isAdmin() ? 'Kelola Barang' : 'Katalog Barang' }}</span>
                     </a>
                 </li>
-                <li class="sidebar-menu-item">
-                    <a href="{{ route('categories.index') }}" class="sidebar-menu-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">
-                        <i class="bi bi-tags-fill"></i>
-                        <span>Kategori Produk</span>
-                    </a>
-                </li>
-                <li class="sidebar-menu-item">
-                    <a href="{{ route('suppliers.index') }}" class="sidebar-menu-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
-                        <i class="bi bi-truck"></i>
-                        <span>Kelola Supplier</span>
-                    </a>
-                </li>
+                @if(auth()->user()->isAdmin())
+                    <li class="sidebar-menu-item">
+                        <a href="{{ route('categories.index') }}" class="sidebar-menu-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">
+                            <i class="bi bi-tags-fill"></i>
+                            <span>Kategori Produk</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-menu-item">
+                        <a href="{{ route('suppliers.index') }}" class="sidebar-menu-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
+                            <i class="bi bi-truck"></i>
+                            <span>Kelola Supplier</span>
+                        </a>
+                    </li>
+                @endif
                 <li class="sidebar-menu-item">
                     <a href="{{ route('stock.index') }}" class="sidebar-menu-link {{ request()->routeIs('stock.*') ? 'active' : '' }}">
                         <i class="bi bi-arrow-left-right"></i>
@@ -194,33 +221,57 @@
                         @endif
                     </a>
                 </li>
-                <li class="sidebar-menu-item">
-                    <a href="{{ route('eoq.index') }}" class="sidebar-menu-link {{ request()->routeIs('eoq.*') ? 'active' : '' }}">
-                        <i class="bi bi-cpu-fill"></i>
-                        <span>Algoritma EOQ</span>
-                    </a>
-                </li>
+                @if(auth()->user()->isAdmin())
+                    <li class="sidebar-menu-item">
+                        <a href="{{ route('eoq.index') }}" class="sidebar-menu-link {{ request()->routeIs('eoq.*') ? 'active' : '' }}">
+                            <i class="bi bi-cpu-fill"></i>
+                            <span>Algoritma EOQ</span>
+                        </a>
+                    </li>
+                @endif
             </ul>
         </div>
 
-        <div class="sidebar-menu-section">
-            <div class="sidebar-menu-title">LAPORAN</div>
-            <ul class="sidebar-menu-list">
-                <li class="sidebar-menu-item">
-                    <a href="{{ route('reports.sales') }}" class="sidebar-menu-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                        <i class="bi bi-file-earmark-bar-graph-fill"></i>
-                        <span>Laporan Bisnis</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
+        @if(auth()->user()->isAdmin())
+            <div class="sidebar-menu-section">
+                <div class="sidebar-menu-title">LAPORAN</div>
+                <ul class="sidebar-menu-list">
+                    <li class="sidebar-menu-item">
+                        <a href="{{ route('reports.sales') }}" class="sidebar-menu-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                            <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                            <span>Laporan Bisnis</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-menu-section">
+                <div class="sidebar-menu-title">SISTEM & AKSES</div>
+                <ul class="sidebar-menu-list">
+                    <li class="sidebar-menu-item">
+                        <a href="{{ route('users.index') }}" class="sidebar-menu-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                            <i class="bi bi-people-fill"></i>
+                            <span>Kelola Pengguna</span>
+                            <span class="sidebar-menu-badge bg-primary text-white">Role</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        @endif
 
         <!-- Bottom Profile Dock -->
         <div class="sidebar-profile">
-            <img src="{{ asset('assets/images/user-4.jpg') }}" alt="Admin" class="sidebar-profile-img" onerror="this.src='https://ui-avatars.com/api/?name=Admin+Tanikuy&background=072F1F&color=B4F105';">
+            <img src="{{ asset('assets/images/user-4.jpg') }}" alt="User" class="sidebar-profile-img" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'User') }}&background=072F1F&color=B4F105';">
             <div class="sidebar-profile-info">
-                <div class="sidebar-profile-name">{{ auth()->user()->name ?? 'Admin Tanikuy' }}</div>
-                <div class="sidebar-profile-email">{{ auth()->user()->email ?? 'admin@tanikuy.com' }}</div>
+                <div class="sidebar-profile-name d-flex align-items-center gap-1">
+                    <span class="text-truncate" style="max-width: 95px;">{{ auth()->user()->name ?? 'Pengguna' }}</span>
+                    @if(auth()->user()->isAdmin())
+                        <span class="badge bg-success text-white py-0 px-1" style="font-size: 0.62rem;">Admin</span>
+                    @else
+                        <span class="badge bg-warning text-dark py-0 px-1" style="font-size: 0.62rem;">Kasir</span>
+                    @endif
+                </div>
+                <div class="sidebar-profile-email text-truncate" style="max-width: 140px;">{{ auth()->user()->email ?? 'user@tanikuy.com' }}</div>
             </div>
             <form action="{{ route('logout') }}" method="POST" class="d-inline m-0 p-0">
                 @csrf
@@ -261,15 +312,32 @@
 
                 <div class="dropdown">
                     <button class="btn btn-sm btn-light rounded-pill px-3 py-1 dropdown-toggle d-flex align-items-center gap-2 border" type="button" data-bs-toggle="dropdown">
-                        <span class="fw-semibold text-dark">{{ auth()->user()->name ?? 'Admin' }}</span>
+                        <span class="fw-semibold text-dark">{{ auth()->user()->name ?? 'User' }}</span>
+                        @if(auth()->user()->isAdmin())
+                            <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.68rem;">Admin</span>
+                        @else
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.68rem;">Kasir</span>
+                        @endif
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: var(--radius-lg);">
                         <li>
                             <div class="px-3 py-2 border-bottom">
-                                <div class="fw-bold">{{ auth()->user()->name ?? 'Admin Tanikuy' }}</div>
-                                <div class="small text-muted">{{ auth()->user()->email ?? 'admin@tanikuy.com' }}</div>
+                                <div class="fw-bold">{{ auth()->user()->name ?? 'Pengguna Tanikuy' }}</div>
+                                <div class="small text-muted">{{ auth()->user()->email ?? 'user@tanikuy.com' }}</div>
+                                <div class="mt-1">
+                                    <span class="badge {{ auth()->user()->isAdmin() ? 'bg-success text-white' : 'bg-warning text-dark' }}" style="font-size: 0.7rem;">
+                                        {{ auth()->user()->role_label }}
+                                    </span>
+                                </div>
                             </div>
                         </li>
+                        @if(auth()->user()->isAdmin())
+                            <li>
+                                <a class="dropdown-item py-2" href="{{ route('users.index') }}">
+                                    <i class="bi bi-people me-2 text-secondary"></i> Kelola Pengguna
+                                </a>
+                            </li>
+                        @endif
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf

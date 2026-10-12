@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Services\TransactionService;
@@ -22,7 +23,7 @@ class TransactionController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        $query = Transaction::with(['details.product'])
+        $query = Transaction::with(['details.product', 'user'])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
                     $sub->where('nomor_transaksi', 'like', "%{$search}%")
@@ -49,7 +50,9 @@ class TransactionController extends Controller
             ->orderBy('nama_barang')
             ->get();
 
-        return view('transactions.create', compact('products'));
+        $categories = Category::active()->get();
+
+        return view('transactions.create', compact('products', 'categories'));
     }
 
     public function store(Request $request)
@@ -87,13 +90,13 @@ class TransactionController extends Controller
 
     public function show(Transaction $transaction)
     {
-        $transaction->load(['details.product.kategori']);
+        $transaction->load(['details.product.kategori', 'user']);
         return view('transactions.show', compact('transaction'));
     }
 
     public function invoice(Transaction $transaction)
     {
-        $transaction->load(['details.product']);
+        $transaction->load(['details.product', 'user']);
         return view('transactions.invoice', compact('transaction'));
     }
 

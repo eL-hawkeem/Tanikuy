@@ -396,3 +396,26 @@ DB_PASSWORD=
 
 FILESYSTEM_DISK=public
 ```
+
+---
+
+## 11. Role-Based Access Control (RBAC)
+
+Tanikuy mengimplementasikan sistem multi-peran menggunakan Enum `UserRole` dan middleware `role`:
+
+| Fitur / Modul | Administrator (`admin`) | Kasir (`kasir`) | Keterangan |
+|---|:---:|:---:|---|
+| **Dashboard** | ✅ Penuh | ✅ Terbatas (Aktivitas Toko & POS) | Kasir diarahkan fokus pada layanan penjualan |
+| **Kasir / POS Transaksi** | ✅ Akses Penuh | ✅ Akses Utama | Pencatatan penjualan & pengurangan stok real-time |
+| **Riwayat Penjualan** | ✅ Akses Penuh | ✅ Akses Penuh | Melihat riwayat transaksi & cetak struk/nota |
+| **Cetak Faktur (Invoice)** | ✅ Ya | ✅ Ya | Menampilkan nama kasir bertugas pada faktur |
+| **Batalkan Transaksi** | ✅ Ya | ❌ Ditolak (403) | Hanya Admin yang berwenang membatalkan transaksi |
+| **Katalog Barang (Lihat)** | ✅ Ya | ✅ Ya (Read-only) | Kasir dapat mengecek harga & ketersediaan barang |
+| **Kelola Barang (CRUD)** | ✅ Ya | ❌ Ditolak (403) | Penambahan, pengubahan, & penghapusan produk |
+| **Kategori & Supplier** | ✅ Ya | ❌ Ditolak (403) | Master data pemasok & kategori |
+| **Pemantauan Stok (Lihat)** | ✅ Ya | ✅ Ya (Read-only) | Kasir dapat melihat level stok saat ini |
+| **Restock & Stock Opname** | ✅ Ya | ❌ Ditolak (403) | Input barang masuk & penyesuaian stok fisik |
+| **Algoritma & Analisis EOQ** | ✅ Ya | ❌ Ditolak (403) | Perhitungan kuantitas pesanan ekonomis |
+| **Laporan Bisnis & Profit** | ✅ Ya | ❌ Ditolak (403) | Laporan laba/rugi, penjualan, dan valuasi aset |
+| **Kelola Pengguna & Peran** | ✅ Ya | ❌ Ditolak (403) | Manajemen akun Admin dan Kasir |
+

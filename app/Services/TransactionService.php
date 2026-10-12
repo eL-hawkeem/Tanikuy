@@ -64,6 +64,7 @@ class TransactionService
 
             // 2. Buat header transaksi
             $transaction = Transaction::create([
+                'user_id' => $data['user_id'] ?? auth()->id(),
                 'nomor_transaksi' => $invoiceNumber,
                 'tanggal' => $data['tanggal'] ?? now(),
                 'nama_pelanggan' => $data['nama_pelanggan'] ?? 'Pelanggan Umum',
